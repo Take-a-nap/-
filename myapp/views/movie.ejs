@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>豆瓣管理系统</title>
+    <link rel='stylesheet' href='/bootstrap/css/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/font-awesome.min.css' />
+    <link rel='stylesheet' href='/stylesheets/ionicons.min.css' />
+    <link rel='stylesheet' href='/admin-lte/dist/css/AdminLTE.css' />
+    <link rel='stylesheet' href='/admin-lte/dist/css/skins/skin-blue.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body class="hold-transition skin-blue sidebar-mini">
+  <div class="wrapper">
+
+    <%- include('./header') %>
+    <%- include('./menu') %>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <section class="content-header">
+        <h1>
+          <!--<small>Optional description</small>-->
+        </h1>
+        <ol class="breadcrumb">
+          <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
+          <li class="active">Here</li>
+        </ol>
+      </section>
+      <!-- Main content -->
+      <section class="content">
+        电影管理
+        <!-- Your Page Content Here -->
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header">
+              <!--<h3 class="box-title">筛选条件:</h3>-->
+              <a href="movieAdd"><button class="btn btn-sm btn-success">添加电影</button></a>
+            <a href="/movie"><button class="btn btn-sm btn-success">显示全部</button></a>
+              <a href="moviePaging?pageCode=<%= pageCode-2 %>&limitNum=5"><button class="btn btn-sm btn-default">上一页</button></a>
+              <span><input type="number" value="<%= pageCode %>" style="width: 50px;text-align: center" id="num" onchange="getData()"> / <%= totalNum %></span>
+              <a href="moviePaging?pageCode=<%= pageCode %>&limitNum=5"><button class="btn btn-sm btn-default">下一页</button></a>
+              <h5 class="h5">
+                <span id="average-span">评分筛选:</span>
+                <ul id="averagelist"></ul>
+              </h5>
+              <h5 class="h5">
+                <span id="yearlist-span">上映时间筛选:</span>
+                <ul id="yearlist"></ul>
+              </h5>
+              <div class="box-tools">
+                <div class="input-group input-group-sm" style="width: 150px;">
+                  <input type="text" name="table_search" id="searchTxt" class="form-control pull-right" placeholder="请输入电影名">
+
+                  <div class="input-group-btn">
+                    <button type="button" class="btn btn-default" onclick="search()" ><i class="fa fa-search"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /.box-header -->
+            <!--<h5></h5>-->
+            <div class="box-body table-responsive no-padding">
+              <table class="table table-hover table-bordered">
+                <tbody><tr>
+                  <th>序号</th>
+                  <th>电影名称</th>
+                  <th>宣传图</th>
+                  <th>上映时间<button class="sortBut" onclick="sortData('year',1)">升</button><button class="sortBut" onclick="sortData('year',-1)">降</button></th>
+                  <th>豆瓣评分<button class="sortBut" onclick="sortData('average',1)">升</button><button class="sortBut" onclick="sortData('average',-1)">降</button></th>
+                  <th>票房<button class="sortBut" onclick="sortData('collect_count',1)">升</button><button class="sortBut" onclick="sortData('collect_count',-1)">降</button></th>
+                  <th>操作</th>
+                </tr>
+                <% if(result.length == 0) {%>
+                <tr>
+                  <td colspan="7">
+                    暂无数据，<a href="/moviePaging">返回首页</a>
+                  </td>
+                </tr>
+                <%}else{%>
+
+                <% for(var i=0;i<result.length;i++){ %>
+                <tr>
+                  <td><%= (pageCode-1)*limitNum+i+1 %></td>
+                  <td><%= result[i].title %></td>
+                  <td><img src="<%= result[i].images %>" style="width:100px; height: 100px"></td>
+                  <td><%= result[i].year %></td>
+                  <td><%= result[i].average %></td>
+                  <td><%= result[i].collect_count %></td>
+                  <td>
+                    <a href="/movieUpdate?id=<%= result[i].id %>"> <button class="btn btn-xs btn-warning">编辑</button></a>
+                    <button class="btn btn-xs btn-danger" onclick="deleteItem(<%= result[i].id %>)">删除</button>
+                  </td>
+                </tr>
+                <% } %>
+                <% } %>
+
+
+                </tbody></table>
+            </div>
+            <!-- /.box-body -->
+          </div>
+          <!-- /.box -->
+        </div>
+      </section>
+      <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+      <%- include('./footer') %>
+
+      <%- include('./other') %>
+
+  </div>
+  <!-- ./wrapper -->
+  </body>
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/bootstrap/js/bootstrap.min.js"></script>
+<script src="/javascripts/app.min.js"></script>
+  <script>
+      $('#menulist').find('li').eq(2).addClass('active');
+      function getData() {
+          var val =$('#num').val();
+          val--;
+          window.location.href='moviePaging?pageCode='+val+'&limitNum=5'
+      }
+      $.ajax({
+          url:'/movieDistinct?type=average',
+          success:function (data) {
+              console.log(data)
+              data.sort();
+              for(var item of data){
+                  $('#averagelist').append(`<li><a href="/movieFind?type=average&val=${item}"> ${item}</a></li>`)
+              }
+          }
+      })
+      $.ajax({
+          url:'/movieDistinct?type=year',
+          success:function (data) {
+              console.log(data)
+              data.sort();
+              for(var item of data){
+                  $('#yearlist').append(`<li><a href="/movieFind?type=year&val=${item}"> ${item}</a></li>`)
+              }
+          }
+      })
+    function search() {
+        let val= $('#searchTxt').val();
+        window.location.href='/movieSearch?searchTxt='+val;
+    }
+    function sortData(type,num) {
+        window.location.href=`/movieSort?type=${type}&val=${num}`;
+    }
+    function deleteItem(id) {
+          window.location.href=`/movieDelete?id=${id}`
+    }
+  </script>
+</html>
